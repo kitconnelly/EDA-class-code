@@ -98,9 +98,9 @@ Note: To manipulate data frames in R we can use the bracket notation to access t
 ```{r}
 # basic data frame example
 # create a data frame with 2 rows, one that contains numbers and the other contains characters
-row1 = seq(1,10,1)
-row2 = c("a","b","c","d","e","f","g","h","i","j")
-data_basic = as.data.frame(cbind(row1, row2), stringsAsFactors=FALSE)
+col1 <- seq(1,10,1)
+col2 <- c("a","b","c","d","e","f","g","h","i","j")
+data_basic <- as.data.frame(cbind(col1, col2), stringsAsFactors=FALSE)
 data_basic
 ```
 
@@ -109,14 +109,14 @@ Get familiar with subsetting based on your understanding of this structure. For 
 
 ```{r}
 # select the first column row1
-
+data_basic[,1]
 
 
 
 
 # subset rows (with a 'relational operator" for "does not equal") to those rows that do not contain "a"
 # try to do on your own
-
+data_basic[data_basic$col2 != 'a',]
 ```
 
 ## Base R indexing with flights data
@@ -126,28 +126,28 @@ Now lets try similar moves with our flights data. Again, see if you can do it in
 ```{r}
 # students
 # create a new object that returns a vector for the column called "origin"
-
-
+origin <- flights[, 'origin']
 
 
 # students:
 # create a new object that is a subset of the original data frame and contains 50 rows and 3 variables
 # name that object foo
+foo <- flights[1:50, 1:3]
 
 ```
 
 How might we quickly see which origin airports are included in the data?
 
 ```{r}
-
-
+table(origin)
+unique(origin)
 ```
 
 **On your own, can you find all the flights whose origin is 'JFK' using base R?**
 
 ```{r eval=FALSE}
-
-
+jfk <- flights[flights$origin == 'JFK',]
+jfk <- flights[which(flights$origin == 'JFK'),]
 ```
 
 ### Sorting Data
