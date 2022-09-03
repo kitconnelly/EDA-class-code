@@ -1,0 +1,230 @@
+---
+title: "Lecture 2"
+author: "Dr. Cassy Dorff"
+date: "8/30/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+# Summarizing Data 
+
+Key themes overview:
+
+- how to "look" at your data when you first load it in
+- there are two familiar ways of storing tabulated data: in a “wide” format, and in a “long” format. *Wide* data has a column for each variable. 
+- you will hear people use different terms like "variable" and "attribute" to describe "features" of data
+- you've learned to 'index' using brackets and the `$` symbol, this lesson builds on your familiarity with "indexing" to manipulate data 
+- apply basic summary statistics
+- learn to look at relations between variables not just a single variable
+
+--- 
+
+## Long vs wide data
+
+As I mentioned, there are typically two ways that "observational, "rectangular" data are typically stored. *long* and *wide* data. In general, we tend to find data in the "rectangular" data format, i.e. collections of values that are each associated with a variable and an observation. We can quickly think of data types that do not fit this description: images, videos, text, audio, and even sometimes network data. Let's consider the two examples of data organization below.
+
+Which is this? 
+
+Product   Attribute   Value
+-------   ---------   -----
+A         Height      10
+A         Width       5
+A         Weight      2
+B         Height      20
+B         Width       10
+
+The same data in a *wide* format would be:
+
+Product  Height  Width  Weight
+-------  ------  -----  ------
+A        10      5      2
+B        20      10     NA
+
+An easy way to spot the difference is to look for categorical data. In the first case we see that the variable "attribute" contains the categories "Weight" and "Height." (E.g., this is called a "categorical" variable) For each variable to have their own column, as in the *wide* format, we see "weight" and "height" have their own column, like is shown in table 2. This is an intuitive way to record data, but not often to use the data in R. Keep these different structures in mind as we look at data today.
+
+## Set up
+```{r, echo=FALSE}
+# libraries
+# library(tidyverse)
+
+# if you dont want full tidyverse
+library(ggplot2)
+library(dplyr)
+library(nycflights13)
+```
+
+Let's start with the flights data. Below, we see the *wide* format, which looks a lot like something you might view in excel.
+
+## Basic exploration to describe your data
+
+State the obvious. What do we see?
+
+```{r}
+nrow(flights)
+```
+
+We might say, depending on how the data is organized (we will examine this with `head` below) that it has over 336,000 cases (or units or observations) and 19 variables (or features) that describe the units.
+
+```{r}
+# number of columns
+ncol(flights)
+
+# or you might just do dim
+dim(flights)
+```
+
+What is in the columns of the data?
+
+```{r}
+names(flights)
+```
+
+Already we are getting a feel for the shape and size of the data. 
+
+- How is it set up? 
+- What kind of object is it to R? 
+- What does it seemed to be organized by? These are the kinds of questions you always want to ask first about the data you are about to explore.
+
+```{r}
+head(flights)
+```
+
+## Indexing with example data
+
+To do this, we take advantage of the data frame set up which is similar to a matrix that reflects the R X C (i.e., ROW * COLUMNS) principle. 
+
+Note: To manipulate data frames in R we can use the bracket notation to access the indices for the observations and the variables. It is easiest to think of the data frame as a rectangle of data where the rows are the observations and the columns are the variables. Just like in matrix algebra, the indices for a rectangle of data follow the RxC principle; in other words, the first index is for Rows and the second index is for Columns [R, C].When we only want to subset variables (or columns) we use the second index and leave the first index blank. (From:https://stats.idre.ucla.edu/r/modules/subsetting-data/)
+
+```{r}
+# basic data frame creation example
+# create a data frame with 2 columns, one that contains numbers and the other contains characters
+col1 = seq(1,10,1)
+col2 = c("a","b","c","d","e","f","g","h","i","j")
+
+# use data.frame(), we generally use as.data.frame() to coerce a single object into a data.frame object and data.frame() to build an object. 
+data_basic = data.frame(col1=col1, col2=col2, stringsAsFactors=FALSE)
+
+#check it out
+str(data_basic)
+
+# can we add a third variable with out recreating the entire data frame?
+# use "column bind" to add another column
+# create vector
+col3 <- seq(1,20,2)
+
+# add column to existing data
+new_data_basic <- cbind(data_basic, col3)
+
+# check data types
+str(new_data_basic)
+```
+
+We can think of data frames as "2D" with rows and columns. 
+Get familiar with subsetting based on your understanding of this structure. For example:
+
+```{r}
+# select the first column 
+data_basic[,1]
+
+# subset rows (with a 'relational operator" for "does not equal") to those rows that do not contain "a"
+# try to do on your own
+data_basic[data_basic$col2 != "a",]
+```
+
+## Base R indexing with flights data
+
+Now lets try similar moves with our flights data. Again, see if you can do it in base R with basic subsetting.
+
+```{r}
+# students
+# create a new object that returns a vector for the column called "origin"
+flights_org <- flights$origin
+
+# students:
+# create a new object that is a subset of the original data frame and contains 50 rows and 3 variables
+# name that object foo
+
+# answer: you can do this at least two ways:
+# but this is hard if you don't know the index of the vars you want
+foo <- flights[1:50, 1:3] 
+
+# so you can supply var names inside the index
+foo2 = flights[1:50, c("year","origin", "dest")]
+```
+
+How might we quickly see which origin airports are included in the data?
+
+```{r}
+unique(flights$origin)
+
+# some people used table, which works too but can get messy with larger data
+table(flights$origin)
+```
+
+**On your own, can you find all the flights whose origin is 'JFK' using base R?**
+
+```{r eval=FALSE}
+flights_jfk <- flights[flights$origin == "JFK", ]
+```
+
+### Order Data
+
+Ordering the data starts to give us a sense of how the data is organized. We might want to also begin looking into individual variables. For example, we can also summarize the data using built-in functions like `median`, `min`, `max` and `mean.`
+
+*beware of NAs!*
+
+```{r}
+min(flights$air_time, na.rm=TRUE)
+max(flights$air_time, na.rm=TRUE)
+summary(flights$air_time)
+
+# order data by shortest airtime
+# (see min above)
+new_data <- flights[order(flights$air_time),]
+
+# order data by departure delays
+delay_data <- flights[order(flights$dep_delay),]
+delay_data
+```
+
+### End of base R review. 
+
+- **What I want you to understand in this very first lecture is that there are multiple ways to achieve almost any goal in R**. 
+- You might use base R or tidy verse or need to learn other packages for a specific project. 
+- As you get better with R, your choices will depend on the data and project. Knowing how to read base R will absolutely help you learn to code better.
+- We all make mistakes--use help files and spend time with the code to improve!
+
+### Stop/Brainstorm
+
+What kind of questions do these preliminary summaries help you generate?
+
+### Summarize relationships between variables
+
+After investigating the data, it is time to begin to summarize the data based on **questions.** You will learn more about `summarize()` and `group_by` in your programming class this week. 
+
+How can we calculate which airport has the highest average delayed arrival time?
+
+- Hint: use vars `arr_delay` and `origin.`
+- Challenge: for those who are familiar with `apply()` functions in base R or the base R friendly function `aggregate()`try to see if you can do this in both base R and tidy.
+- See `installed.packages(priority="base")` for more.
+
+```{r}
+agg_tidy <-
+  flights %>% 
+  group_by(origin) %>%
+   summarise(n = n(),
+            mean_arr_delay = mean(arr_delay, na.rm=T))
+
+ggplot(agg_tidy, aes(x= origin, mean_arr_delay)) +
+    geom_col() + 
+    theme_minimal()
+```
+
+
+
+## references for today's lecture
+
+- https://github.com/arunsrinivasan/flights
+- https://stackoverflow.com/questions/27886839/what-does-error-object-myvariable-not-found-mean
+- https://rcompanion.org/handbook/C_04.html
+
