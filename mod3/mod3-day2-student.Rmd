@@ -1,0 +1,173 @@
+---
+title: "Mod 3: Scatterplots and bivariate relationships"
+output:
+  pdf_document: default
+  html_notebook: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T,
+                      results = "hide",
+                      plots = "hide")
+```
+
+## Learning objectives Mod 3 Lecture:
+
+- `ggplot`; aesthetics and geoms
+- gain familiarity with inspecting the data
+- gain familiarity with plotting bivariate relationships
+
+### Getting Started
+
+Let's load some data. The original data source is shown in the link below. There is even an updated version of this data you might decide to play around with! here:
+
+- https://data.nashville.gov/Education/Metro-Nashville-Public-Schools-Open-Data/dfdd-wpcd
+
+```{r message=FALSE, warning=FALSE}
+# packages you need for today
+library(dplyr)
+library(ggplot2)
+
+# data for today
+metro_nash_schools <- read.csv("metro-nash-schools.csv")
+head(metro_nash_schools)
+```
+
+### 5 minutes: Explore the data
+
+Explore this data.
+
+- What is the data's structure? 
+- What kind of information does it contain? 
+- What is the unit of analysis?
+- What kind of questions might we be able to ask about this data? 
+
+```{r}
+
+
+```
+
+### Summarize and Investigate the Data
+
+1. Can you summarize and pinpoint a few key variables of interest? 
+
+- What does the variable ``economically disadvantaged` seem to represent?
+- Are there any missing data for this variable? Is this variable an integer?
+
+```{r}
+
+
+```
+
+- What is the total population of students per school? Do we need to add this variable?
+- How is gender measured? 
+
+```{r}
+
+
+
+```
+
+Now, going back too our economically disadvantaged variable, what if we wanted to understand this as a proportion rather than a raw number? How can we use the above new variable to create another new variable that is called "econ_dis_prop"?
+
+```{r}
+
+
+
+```
+
+Explore the data again. Is it easier to describe this variable across schools? YES!
+
+- Which schools has the highest proportion of economically disadvantaged students?
+- Which schools has the lowest proportion of economically disadvantaged students?
+by_cyl %>% arrange(desc(wt))
+
+```{r}
+
+
+
+```
+
+
+### GGplot step by step
+
+Now that we have explored our data, it is time to explore it visually. Let's start with a question that builds on our previous data summaries and analysis above "is there a relationship between the number of economically disadvantaged students and English proficiency in public schools in Nashville?"
+
+1. First, make sure you have the information you need.
+
+```{r}
+metro_nash_schools<- 
+  metro_nash_schools %>%
+  mutate(lim_eng_prop = Limited.English.Proficiency/ total_pop)
+```
+
+2. Then, try to plot. You need data and to map your variables onto the x and y axis.
+
+```{r}
+# plot
+ggplot( , aes(x= , y= ))
+
+```
+
+Note that *aes* is used to _map_ values from the data frame columns onto axes. It is very important to begin to notice why some elements go inside *aes* while others do not. Aesthetic mappings describe how variables in the data are mapped to visual properties (aesthetics).
+
+3. Add the geom_layer, which will inherit information from the first mapping.
+
+```{r}
+# plot
+
+
+```
+
+Adding `geom_point()` gives us a basic scatterplot of the data. There are many ‘geoms’ – i.e., graphical representations of the data in the plot (points, lines, bars), including:
+
+* `geom_point()` for scatter plots, dot plots, etc.
+* `geom_boxplot()` for, well, boxplots!
+* `geom_line()` for trend lines, time series, etc.  
+
+Let's just work with the point geom for now. What if we wanted to change the color of the points? We can do this easily without using an aesthetic, but just setting the `col=` argument within the geom.
+
+```{r}
+# plot
+ggplot(metro_nash_schools, aes(x=econ_dis_prop, y=lim_eng_prop)) +
+  geom_point(color="steelblue")
+```
+
+Why didn't we use a mapping function for that color change?
+
+Let's continue to improve this graphic to explore the relationship between limited english proficiency and economically disadvantaged students in Nashville Public Schools. Right now, the color tells us nothing. Let's remove it. Is there a third variable that might tell us something?
+
+4. Explore geom_point further by experimenting with the mapping the color, shape or size of the points to a third variable.
+
+```{r}
+
+
+
+```
+
+5. Now finalize the graphic by changing the titles and labels where necessary. 
+
+```{r}
+
+
+
+```
+
+There doesn't seem to be much of a relationship between these two variables. Can you explore others? Hint: think back to what we might be able to use from the first half of the analysis (which schools rank high versus low in the "economically disadvantages students" variable)?
+
+```{r}
+
+
+```
+
+
+## References
+
+-http://rstudio-pubs-static.s3.amazonaws.com/374857_5a23bad9783a43c1b102aa80aa5c1a7c.html
+-https://stackoverflow.com/questions/17502808/double-dots-in-a-ggplot
+- https://www.datanovia.com/en/blog/ggplot-colors-best-tricks-you-will-love/
+- http://r-statistics.co/Complete-Ggplot2-Tutorial-Part1-With-R-Code.html
+- https://ggplot2.tidyverse.org/reference/scale_brewer.html
+- https://tutorials.iq.harvard.edu/R/Rgraphics/Rgraphics.html
