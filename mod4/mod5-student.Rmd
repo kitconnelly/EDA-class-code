@@ -1,0 +1,232 @@
+---
+title: "Mod 5: Wrapping up Distributions & Exploring Correlations"
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+## Overview
+
+Last week we learned about distributions and their visualizations. To wrap up, we will also review boxplots, which are a useful way to inspect distributions, especially from a comparative perspective. 
+
+Next we will we move on to explore the concept of correlation and the different ways of visualizing and exploring correlations in our data. We will take an intuitive approach for how to sensibly interpret correlations in your data. 
+
+To begin, we will use data on airquality in New York City. You can visit: https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html for more information about this data set. Note: Definition: Ozone concentrations refer to the quantity of ozone (O3) molecules in the air. 
+
+*Motivating question: Are Heat Waves Associated with Lower Air Quality ?*
+- https://www.thoughtco.com/heat-waves-make-air-quality-worse-1204013
+
+From *thoughtCo:* "Air quality decreases during times of hot temperatures because the heat and sunlight essentially cook the air along with all the chemical compounds lingering within it. This chemical soup combines with the nitrogen oxide emissions present in the air, creating a “smog” of ground-level ozone gas."
+
+## Explore the data
+
+```{r}
+library(datasets)
+library(tidyverse)
+
+#check the data
+data(airquality)
+head(airquality)
+str(airquality)
+
+```
+
+Notice that “Month” and “Day” are coded as numeric variables even though they are clearly categorical. This can be mended as follows, e.g. (there are other ways to do this):
+
+```{r}
+
+airquality$month_cat <- factor(airquality$Month, levels = c(5, 6, 7, 8, 9),
+              labels = c("May", "June", "July", "Aug", "Sept"))
+
+airquality$day <- as.factor(airquality$Day)
+
+```
+
+From R documentation: The function factor is used to encode a vector as a factor (the terms ‘category’ and ‘enumerated type’ are also used for factors). 
+
+It means that you can turn a different kind of variable into a categorical variable. Also, you can label the "levels" of this new variable, as shown above. 
+
+## Boxplot in ggplot
+
+In order to begin we will create a plot and tell `ggplot` that `airquality` is our data, and specify that our x-axis plots the months  and our y-axis plots the `Ozone` variable. We then instruct ggplot to graph this as a boxplot by adding the geom_boxplot() option. 
+
+```{r}
+ggplot(airquality, aes(x = month_cat, y = Ozone)) +
+        geom_boxplot()
+```
+
+Why did we get this warning message? If we were to first examine our variables using the summary() function, we might have a pretty clear answer:
+
+```{r}
+summary(airquality$Ozone)
+```
+
+We can see here that the number of NAs = 37, which is the same number given in the warning. If we remove NAs (you will learn about NAs later in the program), we will no longer get this warning. Below is one way you could subset NA's here.  
+
+```{r}
+air_sub = airquality[!is.na(airquality$Ozone), ]
+```
+
+Let's fix up those axes a bit. Let’s make the y-axis ticks appear at every 25 units rather than 50 using the breaks = seq(0, 175, 25) argument in scale_y_continuous. (The seq function is a base R function that indicates the start and endpoints and the units to increment by respectively. See help(seq) for more information.) We ensure that the y-axis begins and ends where we want by also adding the argument limits = c(0, 175) to scale_y_continuous.
+
+```{r}
+ggplot(air_sub, aes(x = month_cat, y = Ozone)) +
+        geom_boxplot() +
+        scale_x_discrete(name = "Month") +
+        scale_y_continuous(name = "Mean ozone in\nparts per billion",
+                          breaks = seq(0, 175, 25),
+                          limits=c(0, 175)) + 
+        ggtitle("Boxplot of mean ozone by month") +
+        theme_minimal()
+```
+
+As mentioned earlier, the visual power of a boxplot is often found in its ability to quickly relay differences across variables. We first need to do a little data wrangling. What if we want to know how ozone varies by temperature in order to investigate our 'motivating question'?
+
+Recall: https://www.statmethods.net/management/operators.html
+
+# Boxplot across groups
+
+```{r}
+# create a new variable based on mean temperature and "low high" groupings
+airquality_temp <- air_sub %>%
+                        mutate(relative_temp = 
+                                 case_when(
+                                    Temp < mean(Temp, na.rm = T) ~ "Low",
+                                    Temp >= mean(Temp, na.rm = T) ~ "High"
+                                ) %>% as.factor()
+                        )
+
+# try to replicate the graph on the instructor's screen. Take it one step at a time.
+```
+
+There are a lot of things you might want to toy with here, such as color, legend position, or legend label. Spend time with the above code chunk and get familiar with the different ways we could have examined this data. 
+
+## On your own
+
+Here is another quick boxplot using different data for you to examine on your own:
+
+```{r}
+gapminder <- read.csv("https://raw.githubusercontent.com/swcarpentry/r-novice-gapminder/gh-pages/_episodes_rmd/data/gapminder-FiveYearData.csv")
+
+head(gapminder)
+
+# Example:
+ggplot(gapminder, aes(x = continent, y = lifeExp, fill = continent)) +
+  geom_boxplot()
+
+```
+
+# Correlations
+
+A *correlation coefficient*, often referred to as "r", is a number between -1 and 1 that captures the strength of the linear relationship between two numeric variables. For instance, say you’ve asked 30 people about their resting heart rate and how often they work out. 
+
+- If all 30 data points fall perfectly on an increasing line, then the correlation between these two variables will be r = 1.
+- If the relationship is a decreasing one, then r will lie between 0 and -1.
+
+We are going to explore a couple of easy examples and then for your homework you will dig deeper.
+
+## Correlation basics 
+
+Pearson correlation (r), which measures a linear dependence between two variables (x and y), or the strength of the linear relationship between two variables. It’s also known as a parametric correlation test because it depends on the distribution of the data (usually we assume the data is 'normal'). This approach is so widely used that when most people refer to correlation they are referring to the Pearson correlation approach.
+
+## R functions for Correlation
+
+Correlation coefficients can be computed in R by using the functions `cor()` and `cor.test()`. We will focus on `cor()` for now (though you are welcome to explore `cor.test` on your own!)
+
+```{r}
+?cor
+```
+
+The simplified format of this function is `cor(x, y, method = c("pearson", "kendall", "spearman"))`. Where:
+  - x, y: numeric vectors with the same length
+  - method: correlation method (we will use "pearson")
+  - if the data contain missing values, the following R code can be used to handle missing values by case-wise deletion:
+
+```{r}
+cor(x, y,  method = "pearson", use = "complete.obs")
+```
+
+```{r}
+# you can read in the data different ways, play with this on your own.
+# FOR EXAMPLE:
+library(readr)
+metro_nash_schools <- read_csv("metro-nash-schools.csv")
+schools <- janitor::clean_names(metro_nash_schools)
+
+```
+
+Let's explore data we saw last time, specifically a relationship that many students tried to examine with the data on their own. First we will look at the relationship between Disability and Economic disadvantages in the nashville metro schools data. 
+
+```{r}
+head(schools)
+
+# now let's try a quick scatterplot
+ggplot(schools, aes(x=economically_disadvantaged, y=disability)) +
+    geom_point()
+```
+
+Before we 'beautify' the plot or increase its interpretability, we might want to know what the correlation coefficient is! 
+
+```{r}
+cor(schools$economically_disadvantaged, schools$disability)
+
+#oops! NA return. Why?
+summary(schools)
+```
+
+```{r}
+# We have an NA in the Economically Disadvantaged variable we need to remove
+# you could remove all NAs. Generally we avoid this (more in future classes.)
+# schools<-schools[complete.cases(schools[ ,"economically_disadvantaged"]),]
+
+# OR we could use the argument within the function:
+cor(schools$economically_disadvantaged, schools$disability, use="complete.obs")
+```
+
+Visual inspection:
+
+```{r}
+ggplot(schools, aes(x = economically_disadvantaged, y = disability)) +
+  geom_point(na.rm = TRUE) +
+  labs(title="Number of students with Disability \n vs. Number of Economically Disadvantaged Students in Nashville Schools", y="Disability", x="Number of Economically Disadvantaged Students") +
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust=0.5))
+```
+
+Let's add the correlation coefficient to the graph:
+
+```{r}
+ggplot(schools, aes(x = economically_disadvantaged, y = disability)) +
+  geom_point(na.rm = TRUE) +
+  labs(title="Number of students with Disability \n vs. Number of Economically Disadvantaged Students in Nashville Schools \n (Correlation=.68)", y="Disability", x="Number of Economically Disadvantaged Students") +
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust=0.5))
+```
+
+That was a cheap an easy way to do it. How else, or where else, might we add it?
+
+```{r}
+ggplot(schools, aes(x = economically_disadvantaged, y = disability)) +
+  geom_point(na.rm = TRUE) +
+  labs(title="Number of students with Disability \n vs. Number of Economically Disadvantaged Students in Nashville Schools", y="Disability", x="Number of Economically Disadvantaged Students") +
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust=0.5)) +
+  geom_text(x=750, y=350, label="Correlation=.68", size = 4)
+```
+
+Think about on your own: does it make sense to report the raw correlation between counts? How might this look different if we made the two variables proportions to control for the total population size of each school? This idea and concept should be review, we have mentioned this before!
+
+
+
+## References
+- http://t-redactyl.io/blog/2016/04/creating-plots-in-r-using-ggplot2-part-10-boxplots.html
+- http://people.bu.edu/aimcinto/720/lec2.pdf
+- http://www.rebeccabarter.com/blog/2017-11-17-ggplot2_tutorial/
+- https://janhove.github.io/teaching/2016/11/21/what-correlations-look-like
+
+
+
