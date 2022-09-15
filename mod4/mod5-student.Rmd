@@ -101,6 +101,19 @@ airquality_temp <- air_sub %>%
                         )
 
 # try to replicate the graph on the instructor's screen. Take it one step at a time.
+ggplot(airquality_temp, aes(x = month_cat, y = Ozone, fill = relative_temp)) +
+  geom_boxplot() +
+  scale_x_discrete(name = 'Month') +
+  scale_y_continuous(name = 'Ozone in\nparts per billion',
+                     breaks = seq(0, 175, 25),
+                     limits = c(0, 175)) +
+  ggtitle('Ozone Quality During Summer Months') +
+  theme_bw() +
+  theme(axis.title = element_text(face = 'bold'),
+        title = element_text(face = 'bold')) +
+  scale_fill_brewer(palette = 'Accent') +
+  guides(fill = guide_legend(title = 'Relative Temp'))
+  
 ```
 
 There are a lot of things you might want to toy with here, such as color, legend position, or legend label. Spend time with the above code chunk and get familiar with the different ways we could have examined this data. 

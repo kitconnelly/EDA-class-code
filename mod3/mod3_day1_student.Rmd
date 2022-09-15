@@ -20,14 +20,20 @@ Today we are going to explore data on our own applying lessons from last week.
 library(tidyverse)
 
 # load data
-load() 
+load('ncbreweries.rdata')
 
 # use the commands from last lecture to check the dimension, set up, and variable names
 # "state the basics"
 
+dim(ncbreweries)
+class(ncbreweries)
+names(ncbreweries)
 
+# The data set has 251 rows and 7 columns. The columns are name, city, type, beercount, est, status, and url.
+# Using the class() shows that it is a tbl_df, tbl, data.frame
 
 # check out using tidyverse
+df <- as.data.frame(ncbreweries)
 
 ```
 
@@ -41,6 +47,8 @@ Discuss the data with your group. In the columns we see attributes that contain 
 
 ```{r}
 
+table(df$type)
+
 ```
 
 
@@ -48,8 +56,7 @@ Discuss the data with your group. In the columns we see attributes that contain 
 
 ```{r}
 # in tidy (try in groups)
-
-
+beer_count <- df %>% group_by(type) %>% summarize(mean = mean(beercount))
 ```
 
 
@@ -57,5 +64,16 @@ Discuss the data with your group. In the columns we see attributes that contain 
 
 ```{r}
 
+ggplot(beer_count) +
+  geom_col(aes(type, mean), fill = '#E6BE8A') +
+  xlab('Brewery Type') +
+  ylab('Mean Beer Count') +
+  ggtitle('Mean Beer Count by Brewery Type')
 
+ggplot(beer_count) +
+  geom_bar(aes(type, mean), fill = '#E6BE8A', stat = 'identity') +
+  xlab('Brewery Type') +
+  ylab('Mean Beer Count') +
+  ggtitle('Mean Beer Count by Brewery Type')
+         
 ```

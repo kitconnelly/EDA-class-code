@@ -29,9 +29,11 @@ Let's load some data. The original data source is shown in the link below. There
 # packages you need for today
 library(dplyr)
 library(ggplot2)
+library(tidyverse)
+library(RColorBrewer)
 
 # data for today
-metro_nash_schools <- read.csv("metro-nash-schools.csv")
+metro_nash_schools <- read_csv("mod3/metro-nash-schools.csv")
 head(metro_nash_schools)
 ```
 
@@ -40,12 +42,19 @@ head(metro_nash_schools)
 Explore this data.
 
 - What is the data's structure? 
+  - 168 obs of 35 variables
 - What kind of information does it contain? 
+  - Demographic information for multiple schools
 - What is the unit of analysis?
+  - Each obs is a different school
 - What kind of questions might we be able to ask about this data? 
 
 ```{r}
 
+dim(metro_nash_schools)
+str(metro_nash_schools)
+names(metro_nash_schools)
+summary(metro_nash_schools)
 
 ```
 
@@ -54,19 +63,25 @@ Explore this data.
 1. Can you summarize and pinpoint a few key variables of interest? 
 
 - What does the variable ``economically disadvantaged` seem to represent?
+  - How many students are at an economic disadvantage at each school.
 - Are there any missing data for this variable? Is this variable an integer?
+  - Yes, 1 row has a missing value. It is a double.
 
 ```{r}
 
+sum(is.na(metro_nash_schools$`Economically Disadvantaged`))
+typeof(metro_nash_schools$`Economically Disadvantaged`)
 
 ```
 
 - What is the total population of students per school? Do we need to add this variable?
+  - Adding the variable will help us calculate proportions for demographics.
 - How is gender measured? 
+  - Male or Female, count of each
 
 ```{r}
 
-
+metro_nash_schools <- metro_nash_schools %>% mutate(total = Male + Female)
 
 ```
 
@@ -74,7 +89,7 @@ Now, going back too our economically disadvantaged variable, what if we wanted t
 
 ```{r}
 
-
+metro_nash_schools <- metro_nash_schools %>% mutate(econ_dis_prop = `Economically Disadvantaged` / total)
 
 ```
 
@@ -86,7 +101,8 @@ by_cyl %>% arrange(desc(wt))
 
 ```{r}
 
-
+lowest <- metro_nash_schools %>% arrange(econ_dis_prop) %>% head()
+highest <- metro_nash_schools %>% arrange(desc(econ_dis_prop)) %>% head()
 
 ```
 
@@ -98,16 +114,14 @@ Now that we have explored our data, it is time to explore it visually. Let's sta
 1. First, make sure you have the information you need.
 
 ```{r}
-metro_nash_schools<- 
-  metro_nash_schools %>%
-  mutate(lim_eng_prop = Limited.English.Proficiency/ total_pop)
+metro_nash_schools <- metro_nash_schools %>% mutate(lim_eng_prop = `Limited English Proficiency` / total)
 ```
 
 2. Then, try to plot. You need data and to map your variables onto the x and y axis.
 
 ```{r}
 # plot
-ggplot( , aes(x= , y= ))
+ggplot(metro_nash_schools , aes(x = econ_dis_prop , y = lim_eng_prop))
 
 ```
 
@@ -117,7 +131,8 @@ Note that *aes* is used to _map_ values from the data frame columns onto axes. I
 
 ```{r}
 # plot
-
+ggplot(metro_nash_schools , aes(x = econ_dis_prop , y = lim_eng_prop)) +
+  geom_point()
 
 ```
 
@@ -143,7 +158,8 @@ Let's continue to improve this graphic to explore the relationship between limit
 
 ```{r}
 
-
+ggplot(metro_nash_schools, aes(x=econ_dis_prop, y=lim_eng_prop, color = `School Level`)) +
+  geom_point()
 
 ```
 
@@ -151,7 +167,11 @@ Let's continue to improve this graphic to explore the relationship between limit
 
 ```{r}
 
-
+ggplot(metro_nash_schools, aes(x=econ_dis_prop, y=lim_eng_prop, color = `School Level`)) +
+  geom_point() + 
+  xlab('Economically Disadvantaged Students') +
+  ylab('Students with Limited English Proficiency') +
+  ggtitle('Limited English Proficiency and the Economic Status', subtitle = 'Nashville Metro Schools')
 
 ```
 
@@ -159,6 +179,15 @@ There doesn't seem to be much of a relationship between these two variables. Can
 
 ```{r}
 
+metro_nash_schools <- metro_nash_schools %>% mutate(prop_white = White / total)
+
+ggplot(metro_nash_schools) +
+  geom_point(aes(prop_white, econ_dis_prop, color = `School Level`)) +
+  xlab('% White Students') +
+  ylab('% Economically Disadvantaged Students') +
+  ggtitle('Percentage of White Students and the Economic Status', subtitle = 'Nashville Metro Schools') +
+  scale_colour_brewer(palette = 'Dark2') +
+  theme_light()
 
 ```
 
