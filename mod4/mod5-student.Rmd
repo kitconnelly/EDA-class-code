@@ -110,6 +110,7 @@ ggplot(airquality_temp, aes(x = month_cat, y = Ozone, fill = relative_temp)) +
   ggtitle('Ozone Quality During Summer Months') +
   theme_bw() +
   theme(axis.title = element_text(face = 'bold'),
+        legend.title = element_text(face = 'plain'),
         title = element_text(face = 'bold')) +
   scale_fill_brewer(palette = 'Accent') +
   guides(fill = guide_legend(title = 'Relative Temp'))
