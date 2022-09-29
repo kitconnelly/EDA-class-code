@@ -1,0 +1,152 @@
+---
+title: "Missing & Messy Data"
+author: "Dr. Cassy Dorff  <br>"
+date: "11/27/2022"
+output: github_document
+---
+
+# Getting Started (Part 1)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(VIM)
+library(naniar)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+
+```
+
+Load in the airquality data set that we've used before in class. This data set includes ozone, solar, wind, and temperature measurements by Month and Day in New York from May to September in 1973. When we load the data, a quick summary shows us that two of the variables (Ozone and Solar.R) have missing data. 
+
+```{r load}
+data(airquality)
+summary(airquality)
+```
+
+```{r}
+# compare dimensions of original to dropped data
+dim(airquality)
+dim(na.omit(airquality))
+```
+
+## Analyze missingness
+
+First, we perform some descriptive statistics (how many missing? how many variables with missingness?) and try to inspect and visualize the pattern of missing entries and get hints on the *mechanism* driving the missingness. 
+
+For this purpose, we use the R package VIM (Visualization and Imputation of Missing Values - Mathias Templ) as well as Naniar package. You should install the packages VIM and Naniar. 
+
+The `gg_miss_var()` simply takes on the data.frame to be analyzed and makes a simple plot of the missing data. The function from VIM, `aggr()`, calculates and represents the number of missing entries in each variable and for certain combinations of variables (which tend to be missing simultaneously).
+
+```{r}
+# naniar package, based on ggplot
+gg_miss_var(airquality)
+```
+
+First, we see that Ozone and Solar.R contain most of our missing data  The X axis here are counts of missing values. Recall from our module on distributions & boxplots that this data is actually measured across days and months. Let's rework the month variable so we can inspect if missingness is more common in a given month.
+
+```{r}
+# replace the variable "Month" with a factor that uses the 
+# name of the month to represent each numeric value
+
+
+```
+
+Now that you've made a new month variable, plot missingness again but this time FACET by month so you can inspect whether or not missingness varies across months in the data. In addition, change the x-axis to represent the proportion of missingness rather than the count.
+
+```{r warning=FALSE}
+# plot percent of missing data for each variable faceted by month
+# make sure the x axis is from 0 to 100
+
+
+# bonus, can you see how to use the scales library + "scale_y_continous" to add percent signs to the labels?
+# scale_y_continuous(labels = scales::percent_format(scale = 1))
+```
+
+Explore a few other handy functions from the naniar package:
+
+Apply to dataset, apply to individual variables:
+
+- pct_miss
+- n_miss
+- n_complete
+
+
+```{r funcs}
+
+
+
+
+
+
+
+```
+
+Pause here! Send me a slack message when you reach this point.
+
+# Missingness in Variable Relationships (Part 2)
+
+Next, lets examine the relationship of missingness across variables using the VIM package. Before you run the code, read about the VIM package using the help files! Specifically, look at:
+
+- `aggr()`
+- what would happen if we apply `summary()` to` aggr()`
+
+Then TALK THROUGH / DISCUSS the code below:
+
+```{r}
+# VIM package (focus on trying to interpret the graphic output first)
+res<-summary(aggr(airquality, sortVar=TRUE, prop= TRUE))$combinations 
+
+# check out how we can investigate combinations
+head(res[rev(order(res[,2])),])
+```
+
+We can see that the combination which is the most frequent is the one where all the variables are observed (111 values). Then, the second one is the one where Ozone is missing in isolation (35 rows). The third most common is where Solar.R is missing in isolation (5 rows). And finally the fourth most common is when Ozone and Solar.R are simultaneously missing (2 rows) The graph on the right panel represents the pattern, with blue for observed and red for missing. The table output shows us the counts and percentages.
+
+Obviously, this could get hard with lots of variables! And so we might just want a quick look at all the data.
+
+The VIM function matrixplot creates a matrix plot in which all cells of a data matrix are visualized by rectangles. Available data is coded according to a continuous color scheme (gray scale), while missing/imputed data is visualized by a clearly distinguishable color (red). 
+
+Based on the above information, let's explore the ?matrixplot function in the VIM package. Read the help file and change the `sortby` parameter inside the `matrixplot` function. Which column is the most useful to sort the graphic by? Why?
+
+```{r matrix, warning=FALSE}
+matrixplot( )
+```
+
+As VIM package has matrix plot, similarly naniar has the var_miss() function. It provides a summary of whether the data is missing (in black) or not. It also provides the percentage of missing values in each column.
+
+Note, this can handle large data pretty well. See help file.
+
+```{r matrixvim, message=FALSE, warning=FALSE}
+vis_miss(airquality, sort_miss = TRUE)
+```
+
+STOP HERE. 
+
+# Is this missing data a problem? (Part 3)
+
+Lets focus on the ozone variable because it is missing the most data. Compare the mean across different variables for when ozone is missing or not. I've gotten you started on this task by creating an indicator for missingness (there are other ways to do this, feel free to change!)
+
+```{r}
+# create a variable that takes on a value of 1 if missing. 
+
+
+# then group by the "missing" indicator you just made
+# and summarize the mean of Wind creating a variable called "mean_wind"
+# remove NAs
+
+
+
+
+```
+
+Some small differences in Solar.R and Wind between observations missing and not missing the ozone reading. What are the potential implications of this? Discuss.
+
+STOP HERE.
+
+
+#### References 
+http://juliejosse.com/wp-content/uploads/2018/06/DataAnalysisMissingR.html
+
+

@@ -1,3 +1,3 @@
 # EDA-class-code
 
-test 2
+Where all of the code lives for EDA lectures.
