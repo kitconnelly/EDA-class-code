@@ -155,10 +155,17 @@ Now, we can re-plot the alluvial diagram replacing the alluviam's color fill wit
 
 ```{r, warning = F, message = F, fig.height = 4, fig.width = 6}
 
-
-
-
-
+ggplot(flows,aes(y = count, axis1 = Origin, axis2 = Dest)) +
+  geom_alluvium(aes(fill = Airline_reduced)) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  ylab('Number of flights') +
+  ggtitle('Most Common Flight Paths by Airline from Houston in 2011') +
+  theme_bw() +
+  theme(axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank()) +
+  guides(fill = guide_legend(title = 'Airline')) +
+  scale_fill_manual(values = c('blue', 'orange', 'gray'))
 
 ```
 
