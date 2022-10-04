@@ -49,7 +49,8 @@ First, we see that Ozone and Solar.R contain most of our missing data  The X axi
 ```{r}
 # replace the variable "Month" with a factor that uses the 
 # name of the month to represent each numeric value
-
+airquality$month_cat <- factor(airquality$Month, levels = c(5, 6, 7, 8, 9),
+              labels = c("May", "June", "July", "Aug", "Sept"))
 
 ```
 
@@ -58,7 +59,9 @@ Now that you've made a new month variable, plot missingness again but this time 
 ```{r warning=FALSE}
 # plot percent of missing data for each variable faceted by month
 # make sure the x axis is from 0 to 100
-
+gg_miss_var(airquality, month_cat, show_pct = TRUE) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1),
+                     limits = c(0, 100))
 
 # bonus, can you see how to use the scales library + "scale_y_continous" to add percent signs to the labels?
 # scale_y_continuous(labels = scales::percent_format(scale = 1))
@@ -75,11 +78,11 @@ Apply to dataset, apply to individual variables:
 
 ```{r funcs}
 
+pct_miss(airquality$Ozone)
 
+n_miss(airquality$Solar.R)
 
-
-
-
+n_complete(airquality$Wind)
 
 ```
 
@@ -96,7 +99,7 @@ Then TALK THROUGH / DISCUSS the code below:
 
 ```{r}
 # VIM package (focus on trying to interpret the graphic output first)
-res<-summary(aggr(airquality, sortVar=TRUE, prop= TRUE))$combinations 
+res<-summary(aggr(airquality, sortVar=TRUE, prop= TRUE))$combinations
 
 # check out how we can investigate combinations
 head(res[rev(order(res[,2])),])
@@ -111,7 +114,7 @@ The VIM function matrixplot creates a matrix plot in which all cells of a data m
 Based on the above information, let's explore the ?matrixplot function in the VIM package. Read the help file and change the `sortby` parameter inside the `matrixplot` function. Which column is the most useful to sort the graphic by? Why?
 
 ```{r matrix, warning=FALSE}
-matrixplot( )
+matrixplot(airquality, sortby = 'month_cat')
 ```
 
 As VIM package has matrix plot, similarly naniar has the var_miss() function. It provides a summary of whether the data is missing (in black) or not. It also provides the percentage of missing values in each column.
@@ -130,14 +133,15 @@ Lets focus on the ozone variable because it is missing the most data. Compare th
 
 ```{r}
 # create a variable that takes on a value of 1 if missing. 
-
+airquality$ozone_miss <- ifelse(is.na(airquality$Ozone), 1, 0)
 
 # then group by the "missing" indicator you just made
 # and summarize the mean of Wind creating a variable called "mean_wind"
 # remove NAs
-
-
-
+airquality %>% group_by(ozone_miss) %>%
+  summarize(mean_wind = mean(Wind, na.rm = T),
+            mean_solar = mean(Solar.R, na.rm = T),
+            mean_temp = mean(Temp, na.rm = T))
 
 ```
 
